@@ -9,4 +9,5 @@ client = discord.Client()
 async def on_ready():
     pass
 
+
 client.run(Environment.DISCORD_TOKEN)
