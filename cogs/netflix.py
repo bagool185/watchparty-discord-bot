@@ -1,3 +1,4 @@
+import html
 import random
 from typing import List
 
@@ -53,7 +54,7 @@ class NetflixCog(commands.Cog):
 
             for i in range(5):
                 result = response.results[i]
-                embed.add_field(name=f'{result.title} |  {reacs[i]}', value=result.synopsis, inline=False)
+                embed.add_field(name=f'{html.unescape(result.title)} |  Vote with {reacs[i]}', value=result.synopsis, inline=False)
 
             message: discord.Message = await ctx.send(embed=embed)
 
