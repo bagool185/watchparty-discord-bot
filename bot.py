@@ -9,8 +9,7 @@ client = commands.Bot(command_prefix='#', help_command=None)
 async def on_ready():
     print('Bot in da house')
 
-# extensions = ['cogs.netflix']
-client.load_extension('cogs.netflix')
+extensions = ['cogs.netflix']
 
-# [client.load_extension(extension) for extension in extensions]
+[client.load_extension(extension) for extension in extensions]
 client.run(Environment.DISCORD_TOKEN)
