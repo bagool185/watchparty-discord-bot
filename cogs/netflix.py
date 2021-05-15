@@ -20,12 +20,10 @@ class NetflixCog(commands.Cog):
 
     @staticmethod
     def __get_templated_embed() -> discord.Embed:
-        embed = discord.Embed(title='Matching results', description='Top 5 matching results', color=discord.Color.red())
+        embed = discord.Embed(color=discord.Color.red())
 
         embed.set_author(name='YoureMomLole',
                          icon_url='https://www.pngitem.com/pimgs/m/38-381234_download-will-smith-face-image-will-smith-meme.png')
-
-        embed.set_footer(text='Choose wisely...or not')
 
         return embed
 
@@ -37,6 +35,7 @@ class NetflixCog(commands.Cog):
 
         response = requests.get(url=f'{Environment.DISCORD_API_BASE_URL}/guilds/{guild_id}/emojis', headers=headers)
         emojis = response.json()
+
         if len(emojis) < 5:
             return ['🤪', '🤔', '👩‍⚖️', '😎', '⁉']
 
