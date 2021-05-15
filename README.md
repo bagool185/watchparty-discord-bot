@@ -17,6 +17,7 @@ Ughh:
     * display the top 10 queued films
     
 * extend netflix cog
+    * queue films directly by netflix link / id
     * get popular vids
     * search by genre
     
