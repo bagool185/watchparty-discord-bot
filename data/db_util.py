@@ -45,4 +45,10 @@ class DBUtil:
     def add_film(self, film: Film):
 
         item_response: Optional[Film] = self.get_film(film)
-        # TODO: create if not exists, increment vote if it does
+
+        if item_response is None:
+            self.container.create_item(film)
+        else:
+            item_response.votes = item_response.votes + 1
+            self.container.upsert_item(film)
+

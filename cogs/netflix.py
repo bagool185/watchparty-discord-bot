@@ -1,11 +1,15 @@
 import html
 import random
+from datetime import datetime
 from typing import List
 
 import discord
 import requests
 from discord.ext import commands
+from discord.ext.commands import Bot, Context
 
+from data.db_util import DBUtil
+from data.film import Film
 from lib.emojis import EmojiHelper
 from lib.environment import Environment
 from lib.netflix_api_util import NetflixAPIUtil
@@ -17,9 +21,10 @@ class NetflixCog(commands.Cog):
     DEFAULT_SEARCH_LIMIT = 5
 
     def __init__(self, bot):
-        self.bot = bot
+        self.bot: Bot = bot
         self._last_member = None
         self.netflix_util = NetflixAPIUtil()
+        self.db_util = DBUtil()
 
     @staticmethod
     def __get_templated_embed() -> discord.Embed:
@@ -44,14 +49,16 @@ class NetflixCog(commands.Cog):
         return random.sample(list(map(lambda e: e.name, emojis)), self.DEFAULT_SEARCH_LIMIT)
 
     @commands.command(name='search', aliases=['s'])
-    async def search(self, ctx, search_query: str):
+    async def search(self, ctx: Context, search_query: str):
         try:
             response: SearchResponse = self.netflix_util.search(query=search_query)
 
             embed: discord.Embed = self.__get_templated_embed()
             embed.set_thumbnail(url=response.results[0].img)
 
-            reacs = self.__get_random_emoji_set(ctx.guild.id)
+            reacs: List[str] = self.__get_random_emoji_set(ctx.guild.id)
+            # TODO: stonky mapping _CHANGE IT_
+            reacs_mapped_to_films = dict()
 
             for i in range(self.DEFAULT_SEARCH_LIMIT):
                 result = response.results[i]
@@ -59,10 +66,24 @@ class NetflixCog(commands.Cog):
                                 value=result.synopsis,
                                 inline=False)
 
+                reacs_mapped_to_films[reacs[i]] = result.netflix_id
+
             message: discord.Message = await ctx.send(embed=embed)
 
             for reac in reacs:
                 await message.add_reaction(reac)
+
+            # TODO: this obscenity
+            while True:
+                reaction, reaction_user = await self.bot.wait_for('reaction_add')
+                netflix_film_id: str = reacs_mapped_to_films[reaction]
+                utc_datetime_now: str = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+
+                film: Film = Film(netflix_id=netflix_film_id,
+                                  discord_user_id=reaction_user,
+                                  date_added=utc_datetime_now)
+
+                self.db_util.add_film(film)
 
         except Exception as e:
             await ctx.send(str(e))
