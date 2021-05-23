@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import List, Optional
 
 import azure.cosmos.exceptions
 from azure.core.exceptions import ServiceRequestError
@@ -30,11 +30,18 @@ class DBUtil:
             offer_throughput=400
         )
 
+    def get_pool(self) -> List[Film]:
+        item_responses: List[dict] = list(self.container.read_all_items(max_item_count=10))
+
+        films: List[Film] = [Film.parse_obj(item_response) for item_response in item_responses]
+
+        return films
+
     def get_film(self, film: Film) -> Optional[Film]:
 
         try:
-            item_response = self.container.read_item(item=film.id,
-                                                     partition_key=film.discord_user_id)
+            item_response: dict = self.container.read_item(item=film.id,
+                                                           partition_key=film.discord_user_id)
 
             return Film.parse_obj(item_response)
         except azure.cosmos.exceptions.CosmosHttpResponseError as e:

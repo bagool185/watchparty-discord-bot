@@ -50,6 +50,23 @@ class NetflixCog(commands.Cog):
 
         return random.sample(list(map(lambda e: e.name, emojis)), self.DEFAULT_SEARCH_LIMIT)
 
+    @commands.command(name='get', aliases=['g'])
+    async def get(self, ctx: Context):
+
+        films = self.db_util.get_pool()
+
+        embed: discord.Embed = self.__get_templated_embed()
+
+        for film in films:
+
+            voters: List[str] = [(await self.bot.fetch_user(user_id=int(vote))).name for vote in film.votes]
+            # TODO: add film title
+            embed.add_field(name=f'https://www.netflix.com/title/{film.id}',
+                            value=f'Voters: {",".join(voters)}',
+                            inline=False)
+
+        await ctx.send(embed=embed)
+
     @commands.command(name='add', aliases=['a'])
     async def add(self, ctx: Context, netflix_link: str):
         pattern = r'(https:\/\/www.netflix.com\/(browse\?jbv=|title\/))(\d+)'
