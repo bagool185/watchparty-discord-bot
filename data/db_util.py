@@ -51,15 +51,21 @@ class DBUtil:
 
             raise e
 
-    def add_film_or_vote(self, film: Film):
+    def add_film_or_vote(self, film: Film) -> bool:
 
         item_response: Optional[Film] = self.get_film(film)
 
         if item_response is None:
-            self.container.create_item(body=film.dict(), )
+            self.container.create_item(body=film.dict())
+            return True
         else:
             # only add vote if it doesn't already exist TODO: this is questionable at best
             if film.discord_user_id not in item_response.votes:
                 item_response.votes.append(film.discord_user_id)
                 self.container.upsert_item(item_response.dict())
+
+                return True
+
+        return False
+
 

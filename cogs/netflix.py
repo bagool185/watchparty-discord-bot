@@ -15,6 +15,7 @@ from data.film import Film
 from lib.emojis import EmojiHelper
 from lib.environment import Environment
 from lib.netflix_api_util import NetflixAPIUtil
+from lib.parsing_man import ParsingMan
 from models.search_response import SearchResponse
 
 
@@ -59,10 +60,21 @@ class NetflixCog(commands.Cog):
 
         for film in films:
 
-            voters: List[str] = [(await self.bot.fetch_user(user_id=int(vote))).name for vote in film.votes]
+            film_with_metadata: Film = ParsingMan.parse_film_metadata(film=film)
+
+            voters: List[str] = [(await self.bot.fetch_user(user_id=int(vote))).name for vote in film_with_metadata.votes]
+            embed_description = f'''
+            
+[Link](https://www.netflix.com/title/{film_with_metadata.id})
+
+Synopsis: {film_with_metadata.synopsis}
+
+Voters: {",".join(voters)}
+'''
+
             # TODO: add film title
-            embed.add_field(name=f'https://www.netflix.com/title/{film.id}',
-                            value=f'Voters: {",".join(voters)}',
+            embed.add_field(name=f'{film_with_metadata.title} ({film_with_metadata.year}) | {film_with_metadata.genre}',
+                            value=embed_description,
                             inline=False)
 
         await ctx.send(embed=embed)
@@ -83,8 +95,13 @@ class NetflixCog(commands.Cog):
                 date_added=utc_datetime_now,
                 votes=[user.id]
             )
+            # TODO: get metadata before persisting
+            persisted_successfully = self.db_util.add_film_or_vote(film)
 
-            self.db_util.add_film_or_vote(film)
+            if persisted_successfully:
+                await ctx.send(f'Successfully added film with id: {netflix_film_id}')
+            else:
+                await ctx.send(f'You have already voted this film')
 
     @commands.command(name='search', aliases=['s'])
     async def search(self, ctx: Context, search_query: str):
@@ -100,8 +117,14 @@ class NetflixCog(commands.Cog):
 
             for i in range(self.DEFAULT_SEARCH_LIMIT):
                 result = response.results[i]
-                embed.add_field(name=f'{html.unescape(result.title)} |  Vote with {reacs[i]}',
-                                value=result.synopsis,
+                embed_field_title = f'{html.unescape(result.title)} | Vote with {reacs[i]}'
+
+                embed_description = f'''
+[Link](https://www.netflix.com/title/{result.netflix_id})
+Synopsis: {result.synopsis}
+'''
+                embed.add_field(name=embed_field_title,
+                                value=embed_description,
                                 inline=False)
 
                 reacs_mapped_to_films[reacs[i]] = result.netflix_id
