@@ -1,10 +1,12 @@
 import html
 import random
+import re
 from datetime import datetime
 from typing import List
 
 import discord
 import requests
+from discord import User
 from discord.ext import commands
 from discord.ext.commands import Bot, Context
 
@@ -48,6 +50,25 @@ class NetflixCog(commands.Cog):
 
         return random.sample(list(map(lambda e: e.name, emojis)), self.DEFAULT_SEARCH_LIMIT)
 
+    @commands.command(name='add', aliases=['a'])
+    async def add(self, ctx: Context, netflix_link: str):
+        pattern = r'(https:\/\/www.netflix.com\/(browse\?jbv=|title\/))(\d+)'
+        matches = re.match(pattern, netflix_link)
+
+        if matches:
+            netflix_film_id = matches.groups()[-1]
+            user: User = ctx.author
+            utc_datetime_now: str = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+
+            film = Film(
+                id=netflix_film_id,
+                discord_user_id=user.id,
+                date_added=utc_datetime_now,
+                votes=[user.id]
+            )
+
+            self.db_util.add_film_or_vote(film)
+
     @commands.command(name='search', aliases=['s'])
     async def search(self, ctx: Context, search_query: str):
         try:
@@ -73,17 +94,17 @@ class NetflixCog(commands.Cog):
             for reac in reacs:
                 await message.add_reaction(reac)
 
-            # TODO: this obscenity
-            while True:
-                reaction, reaction_user = await self.bot.wait_for('reaction_add')
-                netflix_film_id: str = reacs_mapped_to_films[reaction]
-                utc_datetime_now: str = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
-
-                film: Film = Film(netflix_id=netflix_film_id,
-                                  discord_user_id=reaction_user,
-                                  date_added=utc_datetime_now)
-
-                self.db_util.add_film(film)
+            # # TODO: this obscenity
+            # while True:
+            #     reaction, reaction_user = await self.bot.wait_for('reaction_add')
+            #     netflix_film_id: str = reacs_mapped_to_films[reaction]
+            #     utc_datetime_now: str = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+            #
+            #     film: Film = Film(netflix_id=netflix_film_id,
+            #                       discord_user_id=reaction_user,
+            #                       date_added=utc_datetime_now)
+            #
+            #     self.db_util.add_film(film)
 
         except Exception as e:
             await ctx.send(str(e))

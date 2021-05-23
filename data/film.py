@@ -1,11 +1,11 @@
-from typing import Optional
+from typing import List, Optional
 
 from pydantic import BaseModel
 
 
 class Film(BaseModel):
-    netflix_id: str
+    id: str
     discord_user_id: str
-    votes: Optional[int]
+    votes: Optional[List[str]]
     date_added: str
 
