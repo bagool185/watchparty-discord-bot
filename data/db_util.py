@@ -1,6 +1,7 @@
 from typing import Optional
 
 import azure.cosmos.exceptions
+from azure.core.exceptions import ServiceRequestError
 from azure.cosmos import ContainerProxy, CosmosClient, DatabaseProxy, PartitionKey
 
 from data.film import Film
@@ -10,11 +11,16 @@ from lib.environment import Environment
 class DBUtil:
 
     def __init__(self):
-        self.cosmos_client = CosmosClient(url=Environment.COSMOS_DB_HOST,
-                                          credential=Environment.COSMOS_DB_KEY)
-        self.container: Optional[ContainerProxy] = None
+        try:
+            self.cosmos_client = CosmosClient(url=Environment.COSMOS_DB_HOST,
+                                              credential=Environment.COSMOS_DB_KEY)
+            self.container: Optional[ContainerProxy] = None
 
-        self.__initialise_container()
+            self.__initialise_container()
+        except ServiceRequestError as e:
+            # TODO: add actual logging
+            print(f'Couldn\'t connect to CosmosDB. Check your connection string: \n {e}')
+            exit(1)
 
     @staticmethod
     def __get_partition_key(film: Film) -> str:
