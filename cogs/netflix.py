@@ -105,8 +105,14 @@ Voters: {",".join(voters)}
 
     @commands.command(name='search', aliases=['s'])
     async def search(self, ctx: Context, search_query: str):
+        # TODO: ths only works for 1 word search queries unless you use quotes
+        # use kwargs instead?
         try:
             response: SearchResponse = self.netflix_util.search(query=search_query)
+
+            if len(response.results) == 0:
+                await ctx.send(f'No matching results for "{search_query}". Try to change your query.')
+                return
 
             embed: discord.Embed = self.__get_templated_embed()
             embed.set_thumbnail(url=response.results[0].img)
@@ -114,14 +120,15 @@ Voters: {",".join(voters)}
             reacs: List[str] = self.__get_random_emoji_set(ctx.guild.id)
             # TODO: stonky mapping _CHANGE IT_
             reacs_mapped_to_films = dict()
+            lower_limit = min(self.DEFAULT_SEARCH_LIMIT, len(response.results))
 
-            for i in range(self.DEFAULT_SEARCH_LIMIT):
+            for i in range(lower_limit):
                 result = response.results[i]
                 embed_field_title = f'{html.unescape(result.title)} | Vote with {reacs[i]}'
 
                 embed_description = f'''
 [Link](https://www.netflix.com/title/{result.netflix_id})
-Synopsis: {result.synopsis}
+Synopsis: {html.unescape(result.synopsis)}
 '''
                 embed.add_field(name=embed_field_title,
                                 value=embed_description,

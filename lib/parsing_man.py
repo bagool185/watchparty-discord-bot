@@ -1,7 +1,6 @@
 from typing import Optional
 
 import requests
-
 from bs4 import BeautifulSoup
 
 from data.film import Film
