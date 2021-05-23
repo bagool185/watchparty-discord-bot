@@ -52,7 +52,7 @@ class NetflixCog(commands.Cog):
 
     @commands.command(name='get', aliases=['g'])
     async def get(self, ctx: Context):
-
+        # TODO: order by number of votes (desc)
         films = self.db_util.get_pool()
 
         embed: discord.Embed = self.__get_templated_embed()
