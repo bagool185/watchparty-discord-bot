@@ -10,22 +10,22 @@ from discord import User
 from discord.ext import commands
 from discord.ext.commands import Bot, Context
 
-from services.film_pool_service import FilmPoolService
 from data.film import Film
 from lib.emojis import EmojiHelper
 from lib.environment import Environment
-from services.netflix_service import NetflixService
 from lib.parsing_man import ParsingMan
 from models.search_response import SearchResponse
+from services.film_pool_service import FilmPoolService
+from services.netflix_service import NetflixService
 
 
 class NetflixCog(commands.Cog):
 
     DEFAULT_SEARCH_LIMIT = 5
 
-    def __init__(self, bot):
+    def __init__(self, bot: Bot, netflix_service: NetflixService):
         self.bot: Bot = bot
-        self.netflix_service = NetflixService()
+        self.netflix_service = netflix_service
         self.film_pool_service = FilmPoolService()
 
     @staticmethod
@@ -63,7 +63,7 @@ class NetflixCog(commands.Cog):
 
             voters: List[str] = [
                 (await self.bot.fetch_user(user_id=int(vote))).name
-                 for vote in film_with_metadata.votes
+                for vote in film_with_metadata.votes
             ]
 
             embed_description = f'''
@@ -112,7 +112,7 @@ Voters: {",".join(voters)}
         # use kwargs instead?
         try:
             response: SearchResponse = self.netflix_service.search(query=search_query,
-                                                                search_limit=self.DEFAULT_SEARCH_LIMIT)
+                                                                   search_limit=self.DEFAULT_SEARCH_LIMIT)
 
             if len(response.results) == 0:
                 await ctx.send(f'No matching results for "{search_query}". Try to change your query.')
