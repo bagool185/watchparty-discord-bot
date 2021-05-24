@@ -10,11 +10,11 @@ from discord import User
 from discord.ext import commands
 from discord.ext.commands import Bot, Context
 
-from data.db_util import DBUtil
+from services.film_pool_service import FilmPoolService
 from data.film import Film
 from lib.emojis import EmojiHelper
 from lib.environment import Environment
-from lib.netflix_api_util import NetflixAPIUtil
+from services.netflix_service import NetflixService
 from lib.parsing_man import ParsingMan
 from models.search_response import SearchResponse
 
@@ -25,9 +25,8 @@ class NetflixCog(commands.Cog):
 
     def __init__(self, bot):
         self.bot: Bot = bot
-        self._last_member = None
-        self.netflix_util = NetflixAPIUtil()
-        self.db_util = DBUtil()
+        self.netflix_service = NetflixService()
+        self.film_pool_service = FilmPoolService()
 
     @staticmethod
     def __get_templated_embed() -> discord.Embed:
@@ -54,7 +53,7 @@ class NetflixCog(commands.Cog):
     @commands.command(name='get', aliases=['g'])
     async def get(self, ctx: Context):
         # TODO: order by number of votes (desc)
-        films = self.db_util.get_pool()
+        films = self.film_pool_service.get_pool()
 
         embed: discord.Embed = self.__get_templated_embed()
 
@@ -62,7 +61,11 @@ class NetflixCog(commands.Cog):
 
             film_with_metadata: Film = ParsingMan.parse_film_metadata(film=film)
 
-            voters: List[str] = [(await self.bot.fetch_user(user_id=int(vote))).name for vote in film_with_metadata.votes]
+            voters: List[str] = [
+                (await self.bot.fetch_user(user_id=int(vote))).name
+                 for vote in film_with_metadata.votes
+            ]
+
             embed_description = f'''
             
 [Link](https://www.netflix.com/title/{film_with_metadata.id})
@@ -96,7 +99,7 @@ Voters: {",".join(voters)}
                 votes=[user.id]
             )
             # TODO: get metadata before persisting
-            persisted_successfully = self.db_util.add_film_or_vote(film)
+            persisted_successfully = self.film_pool_service.add_film_or_vote(film)
 
             if persisted_successfully:
                 await ctx.send(f'Successfully added film with id: {netflix_film_id}')
@@ -108,7 +111,8 @@ Voters: {",".join(voters)}
         # TODO: ths only works for 1 word search queries unless you use quotes
         # use kwargs instead?
         try:
-            response: SearchResponse = self.netflix_util.search(query=search_query)
+            response: SearchResponse = self.netflix_service.search(query=search_query,
+                                                                search_limit=self.DEFAULT_SEARCH_LIMIT)
 
             if len(response.results) == 0:
                 await ctx.send(f'No matching results for "{search_query}". Try to change your query.')
@@ -151,7 +155,7 @@ Synopsis: {html.unescape(result.synopsis)}
             #                       discord_user_id=reaction_user,
             #                       date_added=utc_datetime_now)
             #
-            #     self.db_util.add_film(film)
+            #     self.film_pool_service.add_film(film)
 
         except Exception as e:
             await ctx.send(str(e))

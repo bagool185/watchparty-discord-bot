@@ -8,7 +8,7 @@ from data.film import Film
 from lib.environment import Environment
 
 
-class DBUtil:
+class FilmPoolService:
 
     def __init__(self):
         try:

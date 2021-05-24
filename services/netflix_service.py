@@ -4,7 +4,7 @@ from lib.environment import Environment
 from models.search_response import SearchResponse
 
 
-class NetflixAPIUtil:
+class NetflixService:
 
     def __init__(self):
         self.base_url = f'https://{Environment.NETFLIX_API_DOMAIN}'
@@ -14,10 +14,9 @@ class NetflixAPIUtil:
             'x-rapidapi-host': Environment.NETFLIX_API_DOMAIN
         }
 
-    def search(self, query: str) -> SearchResponse:
-
+    def search(self, query: str, search_limit: int) -> SearchResponse:
         query_params = {
-            'limit': '5',
+            'limit': str(search_limit),
             'countryList': Environment.UK_CODE,
             'query': query
         }
