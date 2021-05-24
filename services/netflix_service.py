@@ -10,7 +10,7 @@ class NetflixService:
         self.base_url = f'https://{domain}'
 
         self.headers = {
-            'x-rapidapi-key': Environment.NETFLIX_API_KEY,
+            'x-rapidapi-key': api_key,
             'x-rapidapi-host': domain
         }
 

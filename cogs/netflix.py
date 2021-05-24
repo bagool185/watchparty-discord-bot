@@ -6,11 +6,13 @@ from typing import List
 
 import discord
 import requests
+from dependency_injector.wiring import Provide
 from discord import User
 from discord.ext import commands
 from discord.ext.commands import Bot, Context
 
 from data.film import Film
+from di_container import DIContainer
 from lib.emojis import EmojiHelper
 from lib.environment import Environment
 from lib.parsing_man import ParsingMan
@@ -161,5 +163,5 @@ Synopsis: {html.unescape(result.synopsis)}
             await ctx.send(str(e))
 
 
-def setup(bot):
-    bot.add_cog(NetflixCog(bot))
+def setup(bot: Bot, netflix_service: NetflixService = Provide[DIContainer.netflix_service]):
+    bot.add_cog(NetflixCog(bot, netflix_service))
