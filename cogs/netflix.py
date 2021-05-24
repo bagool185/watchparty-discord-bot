@@ -71,10 +71,10 @@ class NetflixCog(commands.Cog):
             # TODO: only get metadata if it isn't there already
             film_with_metadata: Film = ParsingMan.parse_film_metadata(film=film)
 
-            voters: List[str] = [
+            voters: List[str] = list(
                 (await self.bot.fetch_user(user_id=vote)).name
                 for vote in film_with_metadata.votes
-            ]
+            )
             # TODO: description / title builder?
             embed_description = f'''
             

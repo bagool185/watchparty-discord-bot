@@ -36,7 +36,7 @@ class FilmPoolService:
     def get_pool(self) -> List[Film]:
         item_responses: List[dict] = list(self.container.read_all_items(max_item_count=10))
 
-        films: List[Film] = [Film.parse_obj(item_response) for item_response in item_responses]
+        films: List[Film] = list(Film.parse_obj(item_response) for item_response in item_responses)
 
         return films
 

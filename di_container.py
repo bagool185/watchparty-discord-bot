@@ -3,7 +3,7 @@ import sys
 from azure.cosmos import CosmosClient
 from dependency_injector import containers, providers
 from dependency_injector.containers import DeclarativeContainer
-from dependency_injector.providers import Configuration, DependenciesContainer
+from dependency_injector.providers import Configuration
 
 from lib.environment import Environment
 from services.film_pool_service import FilmPoolService
