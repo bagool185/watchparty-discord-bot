@@ -6,7 +6,7 @@ from typing import List
 
 import discord
 import requests
-from dependency_injector.wiring import Provide
+from dependency_injector.wiring import Provide, inject
 from discord import User
 from discord.ext import commands
 from discord.ext.commands import Bot, Context
@@ -25,7 +25,12 @@ class NetflixCog(commands.Cog):
 
     DEFAULT_SEARCH_LIMIT = 5
 
-    def __init__(self, bot: Bot, netflix_service: NetflixService, film_pool_service: FilmPoolService):
+    @inject
+    def __init__(self,
+                 bot: Bot,
+                 netflix_service: NetflixService = Provide[DIContainer.netflix_service],
+                 film_pool_service: FilmPoolService = Provide[DIContainer.film_pool_service]):
+
         self.bot: Bot = bot
         self.netflix_service = netflix_service
         self.film_pool_service = film_pool_service
@@ -63,7 +68,7 @@ class NetflixCog(commands.Cog):
         embed: discord.Embed = self.__get_templated_embed()
 
         for film in films:
-
+            # TODO: only get metadata if it isn't there already
             film_with_metadata: Film = ParsingMan.parse_film_metadata(film=film)
 
             voters: List[str] = [
@@ -114,7 +119,12 @@ Voters: {",".join(voters)}
                 await ctx.send(f'You have already voted this film')
 
     @commands.command(name='search', aliases=['s'])
-    async def search(self, ctx: Context, search_query: str):
+    async def search(self, ctx: Context, search_query: str = None):
+
+        if search_query is None:
+            await ctx.send('You have to pass a search query. e.g. #search "shrek 2"')
+            return
+
         # TODO: ths only works for 1 word search queries unless you use quotes
         # use *args instead?
         try:
@@ -168,7 +178,5 @@ Synopsis: {html.unescape(result.synopsis)}
             await ctx.send(str(e))
 
 
-def setup(bot: Bot,
-          netflix_service: NetflixService = Provide[DIContainer.netflix_service],
-          film_pool_service: FilmPoolService = Provide[DIContainer.film_pool_service]):
-    bot.add_cog(NetflixCog(bot, netflix_service, film_pool_service))
+def setup(bot: Bot):
+    bot.add_cog(NetflixCog(bot))

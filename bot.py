@@ -1,3 +1,5 @@
+import time
+
 from discord.ext import commands
 
 from di_container import init_di_container

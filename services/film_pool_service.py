@@ -10,6 +10,9 @@ from lib.environment import Environment
 
 class FilmPoolService:
 
+    # TODO: this causes circular dependency import (di container)
+    # @inject
+    # def __init__(self, cosmos_client: CosmosClient = Provide[DIContainer.cosmos_client]):
     def __init__(self, cosmos_client: CosmosClient):
         try:
             self.cosmos_client = cosmos_client

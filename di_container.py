@@ -19,6 +19,7 @@ class DIContainer(containers.DeclarativeContainer):
     root = DependenciesContainer(config=Configuration())
     config = providers.Configuration()
 
+
     netflix_service = providers.Factory(
         NetflixService,
         domain=config.netflix_api_domain,
