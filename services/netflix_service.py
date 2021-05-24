@@ -1,4 +1,4 @@
-import requests
+from requests import get
 
 from lib.environment import Environment
 from models.search_response import SearchResponse
@@ -21,7 +21,7 @@ class NetflixService:
             'query': query
         }
 
-        raw_response = requests.get(url=f'{self.base_url}/search', headers=self.headers, params=query_params)
+        raw_response = get(url=f'{self.base_url}/search', headers=self.headers, params=query_params)
         search_response = SearchResponse.parse_raw(raw_response.text)
 
         return search_response

@@ -1,10 +1,9 @@
-import sys
+from sys import modules
 
 from discord.ext import commands
 
 from di_container import DIContainer
 from lib.environment import Environment
-
 
 di_container = DIContainer()
 di_container.config.from_dict({
@@ -14,7 +13,7 @@ di_container.config.from_dict({
     'cosmos_db_key': Environment.COSMOS_DB_KEY
 })
 
-di_container.wire(modules=[sys.modules[__name__]])
+di_container.wire(modules=[modules[__name__]])
 
 client = commands.Bot(command_prefix='#', help_command=None)
 extensions = ['cogs.netflix']

@@ -1,4 +1,4 @@
-import random
+from random import sample
 from typing import List
 
 
@@ -126,4 +126,4 @@ class EmojiHelper:
                       '🈚️'
                       ]
 
-        return random.sample(all_emojis, sample_size)
+        return sample(all_emojis, sample_size)

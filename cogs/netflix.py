@@ -1,15 +1,14 @@
-import html
-import random
-import re
 from datetime import datetime
+from html import unescape
+from random import sample
+from re import match
 from typing import List
 
-import discord
-import requests
 from dependency_injector.wiring import Provide, inject
-from discord import User
+from discord import Color, Embed, Message, User
 from discord.ext import commands
 from discord.ext.commands import Bot, Context
+from requests import get
 
 from data.film import Film
 from di_container import DIContainer
@@ -36,9 +35,9 @@ class NetflixCog(commands.Cog):
         self.film_pool_service = film_pool_service
 
     @staticmethod
-    def __get_templated_embed() -> discord.Embed:
+    def __get_templated_embed() -> Embed:
         # TODO: update base styles
-        embed = discord.Embed(color=discord.Color.red())
+        embed = Embed(color=Color.red())
 
         embed.set_author(name='YoureMomLole',
                          icon_url='https://www.pngitem.com/pimgs/m/38-381234_download-will-smith-face-image-will-smith-meme.png')
@@ -51,13 +50,13 @@ class NetflixCog(commands.Cog):
             'Authorization': f'Bot {Environment.DISCORD_TOKEN}'
         }
 
-        response = requests.get(url=f'{Environment.DISCORD_API_BASE_URL}/guilds/{guild_id}/emojis', headers=headers)
+        response = get(url=f'{Environment.DISCORD_API_BASE_URL}/guilds/{guild_id}/emojis', headers=headers)
         emojis = response.json()
 
         if len(emojis) < self.DEFAULT_SEARCH_LIMIT:
             return EmojiHelper.get_random_sample(self.DEFAULT_SEARCH_LIMIT)
 
-        return random.sample(list(map(lambda e: e.name, emojis)), self.DEFAULT_SEARCH_LIMIT)
+        return sample(list(map(lambda e: e.name, emojis)), self.DEFAULT_SEARCH_LIMIT)
 
     # TODO: rename command
     @commands.command(name='get', aliases=['g'])
@@ -65,7 +64,7 @@ class NetflixCog(commands.Cog):
         # TODO: sort by number of votes (desc)
         films = self.film_pool_service.get_pool()
 
-        embed: discord.Embed = self.__get_templated_embed()
+        embed: Embed = self.__get_templated_embed()
 
         for film in films:
             # TODO: only get metadata if it isn't there already
@@ -96,7 +95,7 @@ Voters: {",".join(voters)}
     async def add(self, ctx: Context, netflix_link: str):
         # TODO: handle links with gibberish after the ID
         pattern = r'(https:\/\/www.netflix.com\/(browse\?jbv=|title\/))(\d+)'
-        matches = re.match(pattern, netflix_link)
+        matches = match(pattern, netflix_link)
 
         if matches:
             netflix_film_id = matches.groups()[-1]
@@ -135,7 +134,7 @@ Voters: {",".join(voters)}
                 await ctx.send(f'No matching results for "{search_query}". Try to change your query.')
                 return
 
-            embed: discord.Embed = self.__get_templated_embed()
+            embed: Embed = self.__get_templated_embed()
             embed.set_thumbnail(url=response.results[0].img)
 
             reacs: List[str] = self.__get_random_emoji_set(ctx.guild.id)
@@ -145,11 +144,11 @@ Voters: {",".join(voters)}
 
             for i in range(lower_limit):
                 result = response.results[i]
-                embed_field_title = f'{html.unescape(result.title)} | Vote with {reacs[i]}'
+                embed_field_title = f'{unescape(result.title)} | Vote with {reacs[i]}'
 
                 embed_description = f'''
 [Link](https://www.netflix.com/title/{result.netflix_id})
-Synopsis: {html.unescape(result.synopsis)}
+Synopsis: {unescape(result.synopsis)}
 '''
                 embed.add_field(name=embed_field_title,
                                 value=embed_description,
@@ -157,7 +156,7 @@ Synopsis: {html.unescape(result.synopsis)}
 
                 reacs_mapped_to_films[reacs[i]] = result.netflix_id
 
-            message: discord.Message = await ctx.send(embed=embed)
+            message: Message = await ctx.send(embed=embed)
 
             for reac in reacs:
                 await message.add_reaction(reac)
