@@ -25,7 +25,9 @@ class NetflixCog(commands.Cog):
 
     def __init__(self, bot):
         self.bot: Bot = bot
-        self.netflix_service = NetflixService()
+        self.netflix_service = NetflixService(domain=Environment.NETFLIX_API_DOMAIN,
+                                              api_key=Environment.NETFLIX_API_KEY)
+
         self.film_pool_service = FilmPoolService()
 
     @staticmethod

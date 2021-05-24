@@ -6,12 +6,12 @@ from models.search_response import SearchResponse
 
 class NetflixService:
 
-    def __init__(self):
-        self.base_url = f'https://{Environment.NETFLIX_API_DOMAIN}'
+    def __init__(self, domain: str, api_key: str):
+        self.base_url = f'https://{domain}'
 
         self.headers = {
-            'x-rapidapi-key': Environment.NETFLIX_API_KEY,
-            'x-rapidapi-host': Environment.NETFLIX_API_DOMAIN
+            'x-rapidapi-key': api_key,
+            'x-rapidapi-host': domain
         }
 
     def search(self, query: str, search_limit: int) -> SearchResponse:
