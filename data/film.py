@@ -3,7 +3,7 @@ from typing import List, Optional
 from pydantic import BaseModel
 
 
-# TODO: add film title
+# TODO: add guild id?
 class Film(BaseModel):
     id: str
     discord_user_id: str

@@ -25,13 +25,14 @@ class NetflixCog(commands.Cog):
 
     DEFAULT_SEARCH_LIMIT = 5
 
-    def __init__(self, bot: Bot, netflix_service: NetflixService):
+    def __init__(self, bot: Bot, netflix_service: NetflixService, film_pool_service: FilmPoolService):
         self.bot: Bot = bot
         self.netflix_service = netflix_service
-        self.film_pool_service = FilmPoolService()
+        self.film_pool_service = film_pool_service
 
     @staticmethod
     def __get_templated_embed() -> discord.Embed:
+        # TODO: update base styles
         embed = discord.Embed(color=discord.Color.red())
 
         embed.set_author(name='YoureMomLole',
@@ -40,6 +41,7 @@ class NetflixCog(commands.Cog):
         return embed
 
     def __get_random_emoji_set(self, guild_id: str) -> List[str]:
+        # TODO: make a discord service
         headers = {
             'Authorization': f'Bot {Environment.DISCORD_TOKEN}'
         }
@@ -52,9 +54,10 @@ class NetflixCog(commands.Cog):
 
         return random.sample(list(map(lambda e: e.name, emojis)), self.DEFAULT_SEARCH_LIMIT)
 
+    # TODO: rename command
     @commands.command(name='get', aliases=['g'])
     async def get(self, ctx: Context):
-        # TODO: order by number of votes (desc)
+        # TODO: sort by number of votes (desc)
         films = self.film_pool_service.get_pool()
 
         embed: discord.Embed = self.__get_templated_embed()
@@ -64,10 +67,10 @@ class NetflixCog(commands.Cog):
             film_with_metadata: Film = ParsingMan.parse_film_metadata(film=film)
 
             voters: List[str] = [
-                (await self.bot.fetch_user(user_id=int(vote))).name
+                (await self.bot.fetch_user(user_id=vote)).name
                 for vote in film_with_metadata.votes
             ]
-
+            # TODO: description / title builder?
             embed_description = f'''
             
 [Link](https://www.netflix.com/title/{film_with_metadata.id})
@@ -77,21 +80,23 @@ Synopsis: {film_with_metadata.synopsis}
 Voters: {",".join(voters)}
 '''
 
-            # TODO: add film title
             embed.add_field(name=f'{film_with_metadata.title} ({film_with_metadata.year}) | {film_with_metadata.genre}',
                             value=embed_description,
                             inline=False)
 
         await ctx.send(embed=embed)
 
+    # TODO: rename command
     @commands.command(name='add', aliases=['a'])
     async def add(self, ctx: Context, netflix_link: str):
+        # TODO: handle links with gibberish after the ID
         pattern = r'(https:\/\/www.netflix.com\/(browse\?jbv=|title\/))(\d+)'
         matches = re.match(pattern, netflix_link)
 
         if matches:
             netflix_film_id = matches.groups()[-1]
             user: User = ctx.author
+            # TODO: move this to its own function
             utc_datetime_now: str = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
 
             film = Film(
@@ -100,18 +105,18 @@ Voters: {",".join(voters)}
                 date_added=utc_datetime_now,
                 votes=[user.id]
             )
-            # TODO: get metadata before persisting
-            persisted_successfully = self.film_pool_service.add_film_or_vote(film)
+            film_with_metadata = ParsingMan.parse_film_metadata(film)
+            persisted_successfully = self.film_pool_service.add_film_or_vote(film_with_metadata)
 
             if persisted_successfully:
-                await ctx.send(f'Successfully added film with id: {netflix_film_id}')
+                await ctx.send(f'Successfully added "{film_with_metadata.title}" to the pool')
             else:
                 await ctx.send(f'You have already voted this film')
 
     @commands.command(name='search', aliases=['s'])
     async def search(self, ctx: Context, search_query: str):
         # TODO: ths only works for 1 word search queries unless you use quotes
-        # use kwargs instead?
+        # use *args instead?
         try:
             response: SearchResponse = self.netflix_service.search(query=search_query,
                                                                    search_limit=self.DEFAULT_SEARCH_LIMIT)
@@ -124,7 +129,7 @@ Voters: {",".join(voters)}
             embed.set_thumbnail(url=response.results[0].img)
 
             reacs: List[str] = self.__get_random_emoji_set(ctx.guild.id)
-            # TODO: stonky mapping _CHANGE IT_
+            # TODO: move mapping & reacting to a separate method
             reacs_mapped_to_films = dict()
             lower_limit = min(self.DEFAULT_SEARCH_LIMIT, len(response.results))
 
@@ -163,5 +168,7 @@ Synopsis: {html.unescape(result.synopsis)}
             await ctx.send(str(e))
 
 
-def setup(bot: Bot, netflix_service: NetflixService = Provide[DIContainer.netflix_service]):
-    bot.add_cog(NetflixCog(bot, netflix_service))
+def setup(bot: Bot,
+          netflix_service: NetflixService = Provide[DIContainer.netflix_service],
+          film_pool_service: FilmPoolService = Provide[DIContainer.film_pool_service]):
+    bot.add_cog(NetflixCog(bot, netflix_service, film_pool_service))

@@ -17,7 +17,7 @@ class ParsingMan:
         }
 
         response = requests.get(url=url, headers=headers)
-
+        # TODO: add some error handling
         if response.status_code == 200:
 
             soup: BeautifulSoup = BeautifulSoup(response.content, 'html.parser')

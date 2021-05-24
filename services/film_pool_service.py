@@ -10,10 +10,9 @@ from lib.environment import Environment
 
 class FilmPoolService:
 
-    def __init__(self):
+    def __init__(self, cosmos_client: CosmosClient):
         try:
-            self.cosmos_client = CosmosClient(url=Environment.COSMOS_DB_HOST,
-                                              credential=Environment.COSMOS_DB_KEY)
+            self.cosmos_client = cosmos_client
             self.container: Optional[ContainerProxy] = None
 
             self.__initialise_container()
@@ -26,6 +25,7 @@ class FilmPoolService:
         database_client: DatabaseProxy = self.cosmos_client.get_database_client(Environment.DB_NAME)
         self.container: ContainerProxy = database_client.create_container_if_not_exists(
             id=Environment.CONTAINER_NAME,
+            # TODO: is it worth futureproofing this? -> guild_id/discord_user_id
             partition_key=PartitionKey(path='/discord_user_id'),
             offer_throughput=400
         )
