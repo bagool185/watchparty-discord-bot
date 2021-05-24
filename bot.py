@@ -1,22 +1,33 @@
-import time
+import sys
 
 from discord.ext import commands
 
-from di_container import init_di_container
+from di_container import DIContainer
 from lib.environment import Environment
 
-init_di_container()
 
-client = commands.Bot(command_prefix='#', help_command=None)
+def init_bot_stuff():
+    client = commands.Bot(command_prefix='#', help_command=None)
+    extensions = ['cogs.netflix']
 
-
-@client.event
-async def on_ready():
-    print('Bot in da house')
-
-extensions = ['cogs.netflix']
-
-[client.load_extension(extension) for extension in extensions]
-client.run(Environment.DISCORD_TOKEN)
+    [client.load_extension(extension) for extension in extensions]
+    client.run(Environment.DISCORD_TOKEN)
 
 
+def main():
+
+    di_container = DIContainer()
+    di_container.config.from_dict({
+        'netflix_api_domain': Environment.NETFLIX_API_DOMAIN,
+        'netflix_api_key': Environment.NETFLIX_API_KEY,
+        'cosmos_db_domain': Environment.COSMOS_DB_HOST,
+        'cosmos_db_key': Environment.COSMOS_DB_KEY
+    })
+
+    di_container.wire(modules=[sys.modules[__name__]])
+
+    init_bot_stuff()
+
+
+if __name__ == "__main__":
+    main()

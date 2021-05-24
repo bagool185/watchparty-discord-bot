@@ -16,9 +16,7 @@ class ConfigContainer(DeclarativeContainer):
 
 class DIContainer(containers.DeclarativeContainer):
 
-    root = DependenciesContainer(config=Configuration())
     config = providers.Configuration()
-
 
     netflix_service = providers.Factory(
         NetflixService,
@@ -39,16 +37,12 @@ class DIContainer(containers.DeclarativeContainer):
 
 
 def init_di_container():
-    di_container = DIContainer(
-        root=ConfigContainer(
-            # TODO: these aren't being set at all?
-            config={
+    di_container = DIContainer()
+    di_container.config.from_dict({
                 'netflix_api_domain': Environment.NETFLIX_API_DOMAIN,
                 'netflix_api_key': Environment.NETFLIX_API_KEY,
                 'cosmos_db_domain': Environment.COSMOS_DB_HOST,
                 'cosmos_db_key': Environment.COSMOS_DB_KEY
-            }
-        )
-    )
+            })
 
     di_container.wire(modules=[sys.modules[__name__]])
