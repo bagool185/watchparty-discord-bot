@@ -2,6 +2,11 @@
 
 ![I do not want to be perceived](https://data.whicdn.com/images/344598017/original.jpg)
 
+# Stuff I always forget how to get hold of
+
+* **DISCORD_TOKEN:** open dev tools in discord and look for 'token' in local storage 
+* **DISCORD_GUILD:** right click discord server -> copy ID
+* ["Netflix API stuff"](https://rapidapi.com/unogs/api/unogsng)   
 ## TODO
 
 Ughh: 
