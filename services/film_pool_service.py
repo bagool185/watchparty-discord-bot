@@ -17,9 +17,13 @@ class FilmPoolService:
             self.container: Optional[ContainerProxy] = None
 
             self.__initialise_container()
-        except ServiceRequestError as e:
-            # TODO: add actual logging
-            print(f'Couldn\'t connect to CosmosDB. Check your connection string: \n {e}')
+        except azure.cosmos.exceptions.CosmosResourceNotFoundError as e:
+            print(f'''
+Couldn\'t connect to CosmosDB. Check your connection string
+Host:"{Environment.COSMOS_DB_HOST}"
+Stack trace:\n {e}'''
+                  )
+
             exit(1)
 
     def __initialise_container(self):
