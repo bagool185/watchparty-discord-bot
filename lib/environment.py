@@ -13,7 +13,8 @@ class Environment:
     NETFLIX_API_DOMAIN = os.getenv('NETFLIX_API_DOMAIN')
     NETFLIX_API_KEY = os.getenv('NETFLIX_API_KEY')
     DISCORD_API_BASE_URL = os.getenv('DISCORD_API_BASE_URL')
-    UK_CODE = os.getenv('UK_CODE')
+    # TODO: this should be fetched from /countries rather than being hardcoded
+    NETFLIX_API_COUNTRY_CODE_UK = os.getenv('NETFLIX_API_COUNTRY_CODE_UK')
     # Azure stuff
     COSMOS_DB_HOST = os.getenv('COSMOS_DB_HOST')
     COSMOS_DB_KEY = os.getenv('COSMOS_DB_KEY')

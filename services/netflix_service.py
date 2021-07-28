@@ -17,7 +17,7 @@ class NetflixService:
     def search(self, query: str, search_limit: int) -> SearchResponse:
         query_params = {
             'limit': str(search_limit),
-            'countryList': Environment.UK_CODE,
+            'countryList': Environment.NETFLIX_API_COUNTRY_CODE_UK,
             'query': query
         }
 
